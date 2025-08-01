@@ -12,7 +12,7 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
-        ->middleware(['throttle:6,1'])->name('verification.send');;
+        ->middleware(['throttle:6,1'])->name('verification.send');
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
