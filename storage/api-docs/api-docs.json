@@ -12,15 +12,16 @@
         }
     ],
     "paths": {
-        "/register": {
+        "/auth/register": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Registrasi user baru",
+                "summary": "Register new user",
+                "description": "Register a new user",
                 "operationId": "registerUser",
                 "requestBody": {
-                    "description": "Data user yang akan diregistrasi",
+                    "description": "User registration data",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -28,7 +29,8 @@
                                 "required": [
                                     "username",
                                     "email",
-                                    "password"
+                                    "password",
+                                    "password_confirmation"
                                 ],
                                 "properties": {
                                     "username": {
@@ -44,6 +46,11 @@
                                         "type": "string",
                                         "format": "password",
                                         "example": "Password123!"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "Password123!"
                                     }
                                 },
                                 "type": "object"
@@ -53,17 +60,22 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Registrasi berhasil",
+                        "description": "Registration successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Registrasi berhasil! Silakan cek email untuk verifikasi"
+                                            "example": "Registration successful! Please check your email for verification"
                                         },
-                                        "user": {
-                                            "$ref": "#/components/schemas/User"
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -72,7 +84,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validasi gagal",
+                        "description": "Validation failed",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -83,13 +95,11 @@
                                         },
                                         "errors": {
                                             "type": "object",
-                                            "example": {
-                                                "email": [
-                                                    "The email field is required."
-                                                ],
-                                                "password": [
-                                                    "The password must be at least 8 characters."
-                                                ]
+                                            "additionalProperties": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
                                             }
                                         }
                                     },
@@ -101,15 +111,16 @@
                 }
             }
         },
-        "/login": {
+        "/auth/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Login user",
+                "description": "Authenticate user",
                 "operationId": "loginUser",
                 "requestBody": {
-                    "description": "Kredensial login",
+                    "description": "Login credentials",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -121,7 +132,7 @@
                                 "properties": {
                                     "username": {
                                         "type": "string",
-                                        "example": "username"
+                                        "example": "john_doe"
                                     },
                                     "password": {
                                         "type": "string",
@@ -136,21 +147,30 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Login berhasil",
+                        "description": "Login successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "access_token": {
+                                        "message": {
                                             "type": "string",
-                                            "example": "1|abcdefgh1234567890"
+                                            "example": "Login successful"
                                         },
-                                        "token_type": {
-                                            "type": "string",
-                                            "example": "Bearer"
-                                        },
-                                        "user": {
-                                            "$ref": "#/components/schemas/User"
+                                        "data": {
+                                            "properties": {
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "1|abcdefgh1234567890"
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "Bearer"
+                                                },
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -159,14 +179,14 @@
                         }
                     },
                     "401": {
-                        "description": "Kredensial tidak valid",
+                        "description": "Invalid credentials",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Email atau password salah"
+                                            "example": "Invalid credentials"
                                         }
                                     },
                                     "type": "object"
@@ -175,14 +195,228 @@
                         }
                     },
                     "403": {
-                        "description": "Email belum terverifikasi",
+                        "description": "Email not verified",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Email belum diverifikasi. Silakan cek email Anda"
+                                            "example": "Please verify your email address"
+                                        },
+                                        "verified": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "description": "Logout user",
+                "operationId": "logoutUser",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout successful"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/email/verification-notification": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend verification email",
+                "description": "Resend email verification",
+                "operationId": "resendVerificationEmail",
+                "responses": {
+                    "200": {
+                        "description": "Verification email sent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verification email sent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Email already verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email already verified"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many attempts. Please try again later."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email address",
+                "description": "Verify email address (Stateless API version)",
+                "operationId": "verifyEmail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Email verification hash",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email verified successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid verification link",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid verification link"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "410": {
+                        "description": "Verification link expired",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verification link expired"
                                         }
                                     },
                                     "type": "object"
@@ -196,6 +430,33 @@
     },
     "components": {
         "schemas": {
+            "UnauthenticatedError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Unauthenticated"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "title": "User",
                 "description": "User Type Model",
@@ -217,10 +478,6 @@
                         "description": "Profile Image of the user type",
                         "type": "string"
                     },
-                    "email_verification_token": {
-                        "description": "Email Verification Token of the user type",
-                        "type": "string"
-                    },
                     "email_verified_at": {
                         "description": "Datetime of the user email verified at",
                         "type": "timestamp"
@@ -238,10 +495,11 @@
             }
         },
         "securitySchemes": {
-            "bearerAuth": {
-                "type": "http",
-                "bearerFormat": "JWT",
-                "scheme": "bearer"
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Enter token in format (Bearer <token>)",
+                "name": "Authorization",
+                "in": "header"
             }
         }
     },

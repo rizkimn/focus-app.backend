@@ -14,11 +14,23 @@ use OpenApi\Annotations as OA;
  *     url="http://localhost:8000/api",
  *     description="Local Server"
  * )
- * @OA\SecurityScheme(
- *     type="http",
- *     scheme="bearer",
- *     securityScheme="bearerAuth",
- *     bearerFormat="JWT"
+ *
+ * @OA\Schema(
+ *     schema="UnauthenticatedError",
+ *     @OA\Property(property="message", type="string", example="Unauthenticated")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ValidationError",
+ *     @OA\Property(property="message", type="string", example="The given data was invalid"),
+ *     @OA\Property(
+ *         property="errors",
+ *         type="object",
+ *         @OA\AdditionalProperties(
+ *             type="array",
+ *             @OA\Items(type="string")
+ *         )
+ *     )
  * )
  */
 

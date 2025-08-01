@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Support\Facades\URL;
+use Laravel\Sanctum\HasApiTokens;
 use OpenApi\Annotations as OA;
 
 /**
@@ -38,11 +39,6 @@ use OpenApi\Annotations as OA;
  *         description="Profile Image of the user type"
  *     ),
  *     @OA\Property(
- *         property="email_verification_token",
- *         type="string",
- *         description="Email Verification Token of the user type"
- *     ),
- *     @OA\Property(
  *         property="email_verified_at",
  *         type="timestamp",
  *         description="Datetime of the user email verified at"
@@ -60,10 +56,10 @@ use OpenApi\Annotations as OA;
  * )
  */
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -71,8 +67,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
+        'email_verified_at',
         'password',
     ];
 
@@ -83,7 +80,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'email_verification_token',
         'remember_token',
     ];
 
