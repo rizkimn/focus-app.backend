@@ -72,15 +72,6 @@ class AuthController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            event(new Registered($user));
-
-            return response()->json([
-                'message' => 'Registration successful! Please check your email for verification',
-                'data' => [
-                    'user' => new UserResource($user),
-                ],
-            ], 201);
-
         } catch (\Exception $e) {
             Log::error('Registration failed: ' . $e->getMessage());
             return response()->json([
@@ -88,6 +79,23 @@ class AuthController extends Controller
                 'errors' => []
             ], 500);
         }
+
+        try {
+            event(new Registered($user));
+        } catch (\Exception $e) {
+            Log::error('Registration failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'User created but email verification fail to send.',
+                'errors' => []
+            ], 201);
+        }
+
+        return response()->json([
+            'message' => 'Registration successful! Please check your email for verification',
+            'data' => [
+                'user' => new UserResource($user),
+            ],
+        ], 200);
     }
 
     /**
